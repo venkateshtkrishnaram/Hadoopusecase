@@ -1,0 +1,524 @@
+
+Hadoop Additional usecases
+
+
+This use cases covers some additional commands and extreme usecases, please ensure to try all of them. 
+
+1.	Create a new directory in linux namely ~/install/hdfsusecases and create a new file inside the above directory namely ~/install/hdfsusecases/NYSE_2020_06_20.txt copying the first 1000 lines from an existing file ~/pigdata/NYSE_daily 
+
+[hduser@localhost ~]$ pwd
+
+/home/hduser
+
+[hduser@localhost ~]$ mkdir hdfsucdir
+
+[hduser@localhost ~]$ cat ~/pigdata/NYSE_daily | head -1000 > /home/hduser/hdfsucdir/NYSE_file1.txt
+
+[hduser@localhost hdfsucdir]$ cat NYSE_file1.txt | wc -l
+1000
+
+
+2.	Create another new file inside the above directory namely ~/install/hdfsusecases/NYSE_2020_06_21.txt copying the line from 1001 to 2000 from an existing file ~/pigdata/NYSE_daily 
+
+[hduser@localhost pigdata]$ cat NYSE_daily | head -2000 | tail -1000 > /home/hduser/hdfsucdir/nyse_file2.txt
+
+hduser@localhost pigdata]$ ls -lrt /home/hduser/hdfsucdir
+total 116
+
+-rw-rw-r--. 1 hduser hduser 57446 Jun  1 19:13 NYSE_file1.txt
+-rw-rw-r--. 1 hduser hduser 55552 Jun  1 19:37 nyse_file2.txt
+
+[hduser@localhost pigdata]$ cat /home/hduser/hdfsucdir/nyse_file2.txt | wc -l
+
+1000
+
+3.	Create a directory in Hadoop namely /tmp/hdfsusecases 
+
+[hduser@localhost ~]$ hadoop fs -mkdir /user/hduser/venddducdir
+22/06/01 19:51:33 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+
+[hduser@localhost ~]$ hadoop fs -ls /user/hduser
+22/06/01 19:51:46 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+Found 8 items
+drwxr-xr-x   - hduser hadoop          0 2022-04-30 18:26 /user/hduser/cusindddir
+drwxr-xr-x   - hduser hadoop          0 2022-04-30 18:49 /user/hduser/cusinsd1
+drwxr-xr-x   - hduser hadoop          0 2022-05-10 22:20 /user/hduser/extdata
+drwxr-xr-x   - hduser hadoop          0 2022-05-21 08:35 /user/hduser/hiveexternaldata
+drwxr-xr-x   - hduser hadoop          0 2022-05-31 22:20 /user/hduser/hivestore
+drwxr-xr-x   - hduser hadoop          0 2022-04-30 20:39 /user/hduser/s1dir
+drwxr-xr-x   - hduser hadoop          0 2022-04-30 22:07 /user/hduser/s3adir
+drwxr-xr-x   - hduser hadoop          0 2022-06-01 19:51 /user/hduser/venddducdir
+
+[hduser@localhost ~]$ hadoop fs -ls /user/hduser | tail -1
+
+22/06/01 19:52:14 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+
+drwxr-xr-x   - hduser hadoop          0 2022-06-01 19:51 /user/hduser/venddducdir
+
+4.	Check whether the above directory is created in HDFS or not using the below command (Note: We use –test –d option to check whether the given path is a directory or not) 
+
+[hduser@localhost ~]$ hadoop fs -test -d /user/hduser/venddducdir
+22/06/01 20:01:10 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+
+[hduser@localhost ~]$ echo $?
+0
+
+[hduser@localhost ~]$ hadoop fs -test -d /user/hduser/venddducdir1
+22/06/01 20:01:24 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+
+[hduser@localhost ~]$ echo $?
+1
+
+5.	Check what is the status code of the above command using, if it shows 0 then directory is created, if shows non zero then the directory is not created then check the step 3 again. 
+[hduser@localhost ~]$ hadoop fs -test -d /user/hduser/venddducdir
+22/06/01 20:01:10 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+[hduser@localhost ~]$ echo $?
+0
+[hduser@localhost ~]$ hadoop fs -test -d /user/hduser/venddducdir1
+22/06/01 20:01:24 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+[hduser@localhost ~]$ echo $?
+1
+
+6.	Copy file generated only in step 1 (~/install/hdfsusecases/NYSE_2020_06_20.txt) from linux to hdfs directory /tmp/hdfsusecases in the name of NYSE_2020_06.txt 
+
+[hduser@localhost ~]$ hadoop fs -copyFromLocal -f /home/hduser/hdfsucdir/NYSE_file1.txt /user/hduser/venddducdir/samplefile.txt 
+22/06/02 17:03:48 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+
+[hduser@localhost ~]$ hadoop fs -ls /user/hduser/venddducdir
+22/06/02 17:05:34 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+Found 1 items
+-rw-r--r--   1 hduser hadoop      57446 2022-06-02 17:03 /user/hduser/venddducdir/samplefile.txt
+
+7.	Like step 4 and 5, check whether the above file (/tmp/hdfsusecases/NYSE_2020_06.txt) is created or not in HDFS, using -f option and check for the status code using $? and create a zero byte file in HDFS directory /tmp/hdfsusecases in the name of _SUCCESS 
+
+[hduser@localhost ~]$ cat sample.sh
+hadoop fs -test -f /user/hduser/venddducdir/samplefile.txt
+echo $?
+if [ $? = 0 ]
+then
+hadoop fs -touchz /user/hduser/venddducdir/samplefile_success.txt
+echo 'samplefile success is created'
+else
+hadoop fs -touchz /user/hduser/venddducdir/samplfile_failure.txt
+echo 'samplefile failure is created'
+fi
+
+[hduser@localhost ~]$ bash sample.sh
+22/06/05 19:55:57 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+0
+22/06/05 19:56:01 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+samplefile success is created
+
+[hduser@localhost ~]$ hadoop fs -ls /user/hduser/venddducdir
+22/06/05 19:56:26 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+Found 2 items
+-rw-r--r--   1 hduser hadoop     112998 2022-06-02 17:14 /user/hduser/venddducdir/samplefile.txt
+-rw-r--r--   1 hduser hadoop          0 2022-06-05 19:56 /user/hduser/venddducdir/samplefile_success.txt
+
+8.	Append the file generated in step 2 in linux (~/install/hdfsusecases/NYSE_2020_06_20.txt) with the file generated in step 6 in the hdfs directory /tmp/hdfsusecases/NYSE_2020_06.txt 
+
+[hduser@localhost ~]$ hadoop fs -appendToFile /home/hduser/hdfsucdir/nyse_file2.txt /user/hduser/venddducdir/samplefile.txt
+22/06/02 17:14:34 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+
+[hduser@localhost ~]$ hadoop fs -ls /user/hduser/venddducdir22/06/02 17:16:12 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+Found 1 items
+-rw-r--r--   1 hduser hadoop     112998 2022-06-02 17:14 /user/hduser/venddducdir/samplefile.txt
+
+[hduser@localhost ~]$ hadoop fs -cat /user/hduser/venddducdir/samplefile.txt | wc -l
+22/06/02 17:16:53 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+2000
+
+9.	Count the size of the file in HDFS /tmp/hdfsusecases/NYSE_2020_06.txt 
+
+[hduser@localhost ~]$ hadoop fs -du /user/hduser/venddducdir/samplefile.txt
+22/06/05 22:12:25 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+112998  /user/hduser/venddducdir/samplefile.txt
+
+[hduser@localhost ~]$ hadoop fs - ls /user/hduser/venddducdir
+ls: Unknown command
+Did you mean -ls?  This command begins with a dash.
+
+[hduser@localhost ~]$ hadoop fs -ls /user/hduser/venddducdir
+22/06/05 22:13:17 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+Found 2 items
+-rw-r--r--   1 hduser hadoop     112998 2022-06-02 17:14 /user/hduser/venddducdir/samplefile.txt
+-rw-r--r--   1 hduser hadoop          0 2022-06-05 19:56 /user/hduser/venddducdir/samplefile_success.txt
+
+[hduser@localhost ~]$ hadoop fs -du /user/hduser/venddducdir/samplefile_success.txt
+22/06/05 22:13:48 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+0  /user/hduser/venddducdir/samplefile_success.txt
+
+10.	Count the number of rows are there in the /tmp/hdfsusecases/NYSE_2020_06.txt (Which should show the total count of the files created in step1 and 2) 
+
+[hduser@localhost ~]$ hadoop fs -cat /user/hduser/venddducdir/samplefile.txt | wc -l
+22/06/02 17:16:53 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+2000
+
+11.	Display only line 11 to 20 from the file in HDFS /tmp/hdfsusecases/NYSE_2020_06.txt 
+
+
+[hduser@localhost ~]$ hadoop fs -cat /user/hduser/venddducdir/samplefile.txt | head -20 | tail -10
+22/06/05 22:39:28 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+NYSE|CLI|2009-12-16|34.79|35.10|34.48|34.66|1007900|34.21
+NYSE|CLI|2009-12-15|34.60|34.91|34.39|34.84|813200|34.39
+NYSE|CLI|2009-12-14|34.21|34.90|33.86|34.82|987700|34.37
+NYSE|CLI|2009-12-11|33.55|34.08|33.40|34.00|836500|33.56
+NYSE|CLI|2009-12-10|33.61|33.80|33.09|33.26|1296300|32.83
+NYSE|CLI|2009-12-09|33.25|33.71|33.01|33.25|863900|32.82
+NYSE|CLI|2009-12-08|32.57|33.80|32.52|33.18|890000|32.75
+NYSE|CLI|2009-12-07|33.63|33.77|32.78|33.00|961800|32.57
+NYSE|CLI|2009-12-04|33.46|34.12|33.16|33.69|1412400|33.25
+NYSE|CLI|2009-12-03|32.55|33.43|32.48|32.65|1170600|32.22
+cat: Unable to write to output stream.
+
+12.	Store line 11 to 20 from the file in HDFS /tmp/hdfsusecases/NYSE_2020_06.txt into linux file namely ~/install/hdfsusecases/NYSE_sampledata1.txt 
+
+Get to unix file all contents and then move 11 to 20 unix to unix
+
+[hduser@localhost ~]$ cat localunix1.txt | head -20 | tail -10 >> locanunix2.txt
+[hduser@localhost ~]$ cat locanunix2.txt
+NYSE|CLI|2009-12-16|34.79|35.10|34.48|34.66|1007900|34.21
+NYSE|CLI|2009-12-15|34.60|34.91|34.39|34.84|813200|34.39
+NYSE|CLI|2009-12-14|34.21|34.90|33.86|34.82|987700|34.37
+NYSE|CLI|2009-12-11|33.55|34.08|33.40|34.00|836500|33.56
+NYSE|CLI|2009-12-10|33.61|33.80|33.09|33.26|1296300|32.83
+NYSE|CLI|2009-12-09|33.25|33.71|33.01|33.25|863900|32.82
+NYSE|CLI|2009-12-08|32.57|33.80|32.52|33.18|890000|32.75
+NYSE|CLI|2009-12-07|33.63|33.77|32.78|33.00|961800|32.57
+NYSE|CLI|2009-12-04|33.46|34.12|33.16|33.69|1412400|33.25
+NYSE|CLI|2009-12-03|32.55|33.43|32.48|32.65|1170600|32.22
+[hduser@localhost ~]$
+
+
+13.	Delete the line number 1 from the HDFS file /tmp/hdfsusecases/NYSE_2020_06.txt , for example if the above file contains 100 rows, after deletion it should have only 99 rows in HDFS 
+Note: we can’t do this directly because of the WORM property of HDFS data, think about the possible work around and try to achive the result 
+
+
+[hduser@localhost ~]$ cat hadfile1
+useratesh
+user2
+nimalesh
+tanvisha
+this is very good
+[hduser@localhost ~]$ sed -e '1d' hadfile1
+user2
+nimalesh
+tanvisha
+this is very good
+
+[hduser@localhost ~]$ hadoop fs -put sed -e '1d' hadfile1 hadoopha1
+22/06/06 22:47:13 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+put: `hadoopha1': No such file or directory
+
+[hduser@localhost ~]$ sed -e '1d' hadfile1 >> hadfilea
+
+[hduser@localhost ~]$ cat hadfilea
+user2
+nimalesh
+tanvisha
+this is very good
+
+[hduser@localhost ~]$ cat hadfile1
+useratesh
+user2
+nimalesh
+tanvisha
+this is very good
+
+[hduser@localhost ~]$ sed -i '1d' hadfile1 >> hadfilea
+
+[hduser@localhost ~]$ cat hadfile1
+user2
+nimalesh
+tanvisha
+this is very good
+
+[hduser@localhost ~]$ cat hadfilea
+user2
+nimalesh
+tanvisha
+this is very good
+[hduser@localhost ~]$
+
+Take the file to Linux. Use sed command to delete the first line of the fie. Then put the file to hdfs system after deleting the file in linux system.
+
+14.	Copy the above file /tmp/hdfsusecases/NYSE_2020_06.txt in the name of /tmp/hdfsusecases/NYSE_2020_06_bkp.txt 
+
+15.	Merge the files in HDFS /tmp/hdfsusecases/NYSE_2020_06.txt and /tmp/hdfsusecases/NYSE_2020_06_bkp.txt into Linux directory namely ~/install/hdfsusecases/NYSE_2020_06_merged.txt 
+
+[hduser@localhost ~]$ hadoop fs -ls hadfileha1
+22/06/06 21:43:09 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+-rw-r--r--   1 hduser hadoop        104 2022-06-06 08:48 hadfileha1
+
+[hduser@localhost ~]$ hadoop fs -cat hadfileha1
+22/06/06 21:43:25 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+useratesh
+user2
+nimalesh
+tanvisha
+this is very good
+useratesh
+user2
+nimalesh
+tanvisha
+this is very good
+
+[hduser@localhost ~]$ hadoop fs -cat hadfileha2
+22/06/06 21:43:36 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+
+[hduser@localhost ~]$ hadoop fs -echo 'this is good' hadfileha2
+-echo: Unknown command
+
+[hduser@localhost ~]$ hadoop fs -put -f hadfile2 hadfileha2
+22/06/06 21:44:33 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+
+[hduser@localhost ~]$ hadoop fs -cat hadfileha2
+22/06/06 21:44:41 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+this is good
+
+[hduser@localhost ~]$ hadoop fs -getmerge hadfileha1 hadfileha2 hadfileha3
+22/06/06 21:47:41 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+
+[hduser@localhost ~]$ cat hadfileha3
+useratesh
+user2
+nimalesh
+tanvisha
+this is very good
+useratesh
+user2
+nimalesh
+tanvisha
+this is very good
+this is good
+
+[hduser@localhost ~]$ hadoop fs -getmerge hadfileha1 hadfileha2 hadfileha1 hadfileha4
+22/06/06 21:48:08 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+
+[hduser@localhost ~]$ cat hadfileha4
+useratesh
+user2
+nimalesh
+tanvisha
+this is very good
+useratesh
+user2
+nimalesh
+tanvisha
+this is very good
+this is good
+useratesh
+user2
+nimalesh
+tanvisha
+this is very good
+useratesh
+user2
+nimalesh
+tanvisha
+this is very good
+[hduser@localhost ~]$
+
+Note: We have to use the option called -getmerge to achieve this as given below. 
+
+16.	Set the blocksize 64MB while writing the file in HDFS, check in the UI how many blocks are generated 
+
+[hduser@localhost ~]$ ls -lrt /home/hduser/trythis.pptx
+-rwxrw-rw-. 1 hduser hduser 75719905 Mar 29 21:04 /home/hduser/trythis.pptx
+
+[hduser@localhost ~]$ hadoop fs -D dfs.blocksize=435456 trythis.pptx hadtrythis.pptx
+trythis.pptx: Unknown command
+
+[hduser@localhost ~]$ hadoop fs -D dfs.blocksize=435456 -put trythis.pptx hadtrythis.pptx
+22/06/06 22:06:22 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+put: Specified block size is less than configured minimum value (dfs.namenode.fs-limits.min-block-size): 435456 < 1048576
+
+[hduser@localhost ~]$ hadoop fs -D dfs.blocksize=1048576 -put trythis.pptx hadtrythis.pptx
+22/06/06 22:06:43 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+
+[hduser@localhost ~]$ hadoop fs -ls hadtrythis.pptx
+22/06/06 22:07:25 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+-rw-r--r--   1 hduser hadoop   75719905 2022-06-06 22:07 hadtrythis.pptx
+[hduser@localhost ~]$
+
+ 
+
+17.	Set the blocksize 128MB (134217728) for the same file generated in step 16 and replace the existing file in HDFS. 
+
+[hduser@localhost ~]$ hadoop fs -D dfs.blocksize=128048576 -put -f trythis.pptx hadtrythis.pptx
+22/06/06 22:13:25 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+-put: Invalid values: dfs.bytes-per-checksum (=512) must dddide block size (=128048576).
+Usage: hadoop fs [generic options] -put [-f] [-p] [-l] <localsrc> ... <dst>
+
+[hduser@localhost ~]$ hadoop fs -D dfs.blocksize=134217728 -put -f trythis.pptx hadtrythis.pptx
+22/06/06 22:15:19 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+
+[hduser@localhost ~]$ hadoop fs -ls hadtrythis.pptx
+22/06/06 22:15:41 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+-rw-r--r--   1 hduser hadoop   75719905 2022-06-06 22:15 hadtrythis.pptx
+[hduser@localhost ~]$
+
+ 
+
+18.	Set the replication to 3 while writing the file in HDFS 
+
+[hduser@localhost ~]$ hadoop fs -stat %r hadfileh1
+22/06/06 09:13:47 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+1
+
+[hduser@localhost ~]$ hadoop fs -setrep -w 4 hadfileh1
+22/06/06 09:14:15 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+Replication 4 set: hadfileh1
+Waiting for hadfileh1 ........................
+
+........
+
+
+..
+
+Took long time no response but able to see 4
+
+[hduser@localhost ~]$ hadoop fs -stat %r hadfileh1
+22/06/06 09:20:20 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+4
+
+[hduser@localhost ~]$ hadoop fs -ls hadfileh1
+22/06/06 09:20:30 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+-rwxrwxrwx   4 venuser21 venuser23         52 2022-06-05 20:32 hadfileh1
+[hduser@localhost ~]$
+
+
+19.	To check the block information (In which datanode block is present,no of blocks,size,replication, etc) 
+
+[hduser@localhost ~]$ hadoop fsck hadtrythis.pptx -files -blocks
+DEPRECATED: Use of this script to execute hdfs command is deprecated.
+Instead use the hdfs command for it.
+
+22/06/06 22:24:39 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+Connecting to namenode via http://localhost:50070/fsck?ugi=hduser&files=1&blocks=1&path=%2Fuser%2Fhduser%2Fhadtrythis.pptx
+FSCK started by hduser (auth:SIMPLE) from /127.0.0.1 for path /user/hduser/hadtrythis.pptx at Mon Jun 06 22:24:42 IST 2022
+/user/hduser/hadtrythis.pptx 75719905 bytes, 1 block(s):  OK
+0. BP-1266484042-127.0.0.1-1651319609124:blk_1073768710_27888 len=75719905 repl=1
+
+Status: HEALTHY
+ Total size:	75719905 B
+ Total dirs:	0
+ Total files:	1
+ Total symlinks:		0
+ Total blocks (validated):	1 (avg. block size 75719905 B)
+ Minimally replicated blocks:	1 (100.0 %)
+ Over-replicated blocks:	0 (0.0 %)
+ Under-replicated blocks:	0 (0.0 %)
+ Mis-replicated blocks:		0 (0.0 %)
+ Default replication factor:	1
+ Average block replication:	1.0
+ Corrupt blocks:		0
+ Missing replicas:		0 (0.0 %)
+ Number of data-nodes:		1
+ Number of racks:		1
+FSCK ended at Mon Jun 06 22:24:42 IST 2022 in 1 milliseconds
+
+
+The filesystem under path '/user/hduser/hadtrythis.pptx' is HEALTHY
+[hduser@localhost ~]$ hadoop fs -D dfs.blocksize=1048576 -put -f trythis.pptx hadtrythis.pptxst ~]$ hadoop22/06/06 22:32:47 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+[hduser@localhost ~]$ hadoop fsck hadtrythis.pptx -files -blocks
+DEPRECATED: Use of this script to execute hdfs command is deprecated.
+Instead use the hdfs command for it.
+
+22/06/06 22:33:07 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+Connecting to namenode via http://localhost:50070/fsck?ugi=hduser&files=1&blocks=1&path=%2Fuser%2Fhduser%2Fhadtrythis.pptx
+FSCK started by hduser (auth:SIMPLE) from /127.0.0.1 for path /user/hduser/hadtrythis.pptx at Mon Jun 06 22:33:09 IST 2022
+/user/hduser/hadtrythis.pptx 75719905 bytes, 73 block(s):  OK
+0. BP-1266484042-127.0.0.1-1651319609124:blk_1073768711_27889 len=1048576 repl=1
+1. BP-1266484042-127.0.0.1-1651319609124:blk_1073768712_27890 len=1048576 repl=1
+2. BP-1266484042-127.0.0.1-1651319609124:blk_1073768713_27891 len=1048576 repl=1
+……
+……
+72. BP-1266484042-127.0.0.1-1651319609124:blk_1073768783_27961 len=222433 repl=1
+
+Status: HEALTHY
+ Total size:	75719905 B
+ Total dirs:	0
+ Total files:	1
+ Total symlinks:		0
+ Total blocks (validated):	73 (avg. block size 1037258 B)
+ Minimally replicated blocks:	73 (100.0 %)
+ Over-replicated blocks:	0 (0.0 %)
+ Under-replicated blocks:	0 (0.0 %)
+ Mis-replicated blocks:		0 (0.0 %)
+ Default replication factor:	1
+ Average block replication:	1.0
+ Corrupt blocks:		0
+ Missing replicas:		0 (0.0 %)
+ Number of data-nodes:		1
+ Number of racks:		1
+FSCK ended at Mon Jun 06 22:33:09 IST 2022 in 1 milliseconds
+
+
+The filesystem under path '/user/hduser/hadtrythis.pptx' is HEALTHY
+[hduser@localhost ~]$
+
+
+[hduser@localhost ~]$ hadoop fs -setrep -w 5 hadtrythis.pptx
+22/06/06 22:35:30 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+Replication 5 set: hadtrythis.pptx
+Waiting for hadtrythis.pptx .....
+
+
+...
+
+.
+^L.^C[hduser@localhost ~]$ hadoop fsck hadtrythis.pptx -files -blocks
+DEPRECATED: Use of this script to execute hdfs command is deprecated.
+Instead use the hdfs command for it.
+
+22/06/06 22:36:39 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+Connecting to namenode via http://localhost:50070/fsck?ugi=hduser&files=1&blocks=1&path=%2Fuser%2Fhduser%2Fhadtrythis.pptx
+FSCK started by hduser (auth:SIMPLE) from /127.0.0.1 for path /user/hduser/hadtrythis.pptx at Mon Jun 06 22:36:41 IST 2022
+/user/hduser/hadtrythis.pptx 75719905 bytes, 73 block(s):  Under replicated BP-1266484042-127.0.0.1-1651319609124:blk_1073768711_27889. Target Replicas is 5 but found 1 replica(s).
+ Under replicated BP-1266484042-127.0.0.1-1651319609124:blk_1073768712_27890. Target Replicas is 5 but found 1 replica(s).
+ Under replicated BP-1266484042-127.0.0.1-1651319609124:blk_1073768713_27891. Target Replicas is 5 but found 1 replica(s).
+ Under replicated BP-1266484042-127.0.0.1-1651319609124:blk_1073768714_27892. ….
+….
+…
+ Target Replicas is 5 but found 1 replica(s).
+ Under replicated BP-1266484042-127.0.0.1-1651319609124:blk_1073768783_27961. Target Replicas is 5 but found 1 replica(s).
+0. BP-1266484042-127.0.0.1-1651319609124:blk_1073768711_27889 len=1048576 repl=1
+1. BP-1266484042-127.0.0.1-1651319609124:blk_1073768712_27890 len=1048576 repl=1
+2. BP-1266484042-127.0.0.1-1651319609124:blk_1073768713_27891 len=1048576 repl=1
+…
+…
+71. BP-1266484042-127.0.0.1-1651319609124:blk_1073768782_27960 len=1048576 repl=1
+72. BP-1266484042-127.0.0.1-1651319609124:blk_1073768783_27961 len=222433 repl=1
+
+Status: HEALTHY
+ Total size:	75719905 B
+ Total dirs:	0
+ Total files:	1
+ Total symlinks:		0
+ Total blocks (validated):	73 (avg. block size 1037258 B)
+ Minimally replicated blocks:	73 (100.0 %)
+ Over-replicated blocks:	0 (0.0 %)
+ Under-replicated blocks:	73 (100.0 %)
+ Mis-replicated blocks:		0 (0.0 %)
+ Default replication factor:	1
+ Average block replication:	1.0
+ Corrupt blocks:		0
+ Missing replicas:		292 (80.0 %)
+ Number of data-nodes:		1
+ Number of racks:		1
+FSCK ended at Mon Jun 06 22:36:41 IST 2022 in 1 milliseconds
+
+The filesystem under path '/user/hduser/hadtrythis.pptx' is HEALTHY
+[hduser@localhost ~]$ hadoop fs -ls hadtrythis.pptx 
+22/06/06 22:37:50 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+-rw-r--r--   5 hduser hadoop   75719905 2022-06-06 22:32 hadtrythis.pptx
+[hduser@localhost ~]$
+
+20.	Important Command DistCp (distributed copy) is a tool used for copying data between one Hadoop cluster to another cluster or with in the same cluster using mappers. (Interview Question –how do you copy data from production Hadoop cluster to Dev Hadoop cluster) 
+
+21.	choose to overwrite the target files unconditionally even if it exists using upto 2 mappers depends 
+
+22.	To view the content of editlog file, need to convert into xml file using editlog viewer 
+
+hdfs oev -i edits_inprogress_0000000000000009315 -o edittest.xml
